@@ -1,36 +1,52 @@
 #!/bin/bash
 
-# Realiza las verificaciones de los archivos si existen.
-if [ ! -d ../imagenes ]; then
-   echo "Todavia no generaste imagenes"
+# Configuracion de rutas
+DIR_ENTRADA="./imagenes"
+DIR_SALIDA="../imagenes_reducidas"
 
-elif [ ! -d ./imagenes ] ; then
-   echo "Todavia no Descomprimiste los archivos"
-
-else
-  
-   IMAGENES_DESC="./imagenes"
-
-   mkdir -p "../imagenes_reducidas"
-
-   # Itera las imagenes que estan dentro del archivo imagenes.
-   for IMG in "$IMAGENES_DESC"/*.jpg; do
-      # Extrae el nombre de la imagen y se lo asigna a NOMBRE_ARCH.
-      NOMBRE_ARCH=$(basename "$IMG")
-      # Elimina todo lo que tenga despues de ".", incluyendo el ".", del NOMBRE.
-      NOMBRE=${NOMBRE_ARCH%.*}
-       
-      # Realiza el filtro de nombres validos 
-      if [[ $NOMBRE =~ ^[A-Z][a-z]+,?[0-9]* ]] ;then
-         # Realiza la convercion de las imagenes a 512x512  las guarda en imagenes_reducidas
-         convert "$IMG" -gravity center -resize 512x512+0+0 -extent 512x512 "../imagenes_reducidas/$NOMBRE.jpg"
-         echo "cumple los requisitos $NOMBRE"
-      fi
-
-   done
-
-   if [ -z "../imagenes_reducidas" ]; then
-      echo "No se encontraron nombres validos"
-   fi
+# Validacion de dependencias
+if ! command -v convert &> /dev/null; then
+    echo "Error: ImageMagick no esta instalado."
+    exit 1
 fi
+
+# Validacion de directorios
+if [ ! -d "$DIR_ENTRADA" ]; then
+    echo "Error: No se encontro el directorio de imagenes descompressas."
+    exit 1
+fi
+
+mkdir -p "$DIR_SALIDA"
+
+echo "Iniciando procesamiento de imagenes..."
+
+# Contador para verificar si se proceso algo
+PROCESADOS=0
+
+for IMG in "$DIR_ENTRADA"/*.jpg; do
+    # Validar si existen archivos para evitar errores en el loop
+    [ -e "$IMG" ] || continue
+
+    NOMBRE_ARCH=$(basename "$IMG")
+    NOMBRE_SIN_EXT=${NOMBRE_ARCH%.*}
+
+    # Filtro: Nombres que empiezan con Mayuscula seguida de minusculas
+    if [[ $NOMBRE_SIN_EXT =~ ^[A-Z][a-z]+ ]]; then
+        # Conversion a 512x512 centrada
+        convert "$IMG" -gravity center -resize 512x512^ -extent 512x512 "$DIR_SALIDA/$NOMBRE_SIN_EXT.jpg"
+        
+        if [ $? -eq 0 ]; then
+            echo "Imagen procesada: $NOMBRE_SIN_EXT"
+            ((PROCESADOS++))
+        fi
+    fi
+done
+
+# Verificacion final
+if [ $PROCESADOS -eq 0 ]; then
+    echo "No se encontraron imagenes que cumplan con los requisitos de nombre."
+else
+    echo "Proceso finalizado. Total de imagenes reducidas: $PROCESADOS"
+fi
+
 exit 0
