@@ -1,54 +1,51 @@
 #!/bin/bash
 
-# Realiza las verificaciones de los archivos si existen o si estan vacios.
+# Configuracion de rutas y archivos
+DIR_ORIGEN="./imagenes"
+DIR_REDUCIDAS="../imagenes_reducidas"
+REPORT_TOTAL="nom_img.txt"
+REPORT_VAL="nom_val.txt"
+REPORT_A="nom_a.txt"
 
-if [ ! -d ../imagenes ] || [ -z ../imagenes ]; then 
-   echo "Todavia no generaste imagenes o la carpeta se encuentra vacia"
-
-elif [ ! -d ./imagenes ] || [ -z ./imagenes ] ; then
-   echo "Todavia no Descomprimiste los archivos o la carpeta se encuentra vacia"
-
-elif [ ! -d ../imagenes_reducidas ] ; then
-   echo "Todavia no procesaste las imagenes"
-
-else
-   
-   NOMBRES=$(ls "./imagenes")
-   if [ -e nom_img.txt ] ;then
-     rm nom_img.txt
-     touch nom_img.txt
-   else
-     touch nom_img.txt
-   fi
-
-   # Crea un archivo y guarda todos los nombres de las imagenes que se generaron.
-   for IMG in $NOMBRES; do
-     NOMBRE_ARCH=$(basename "$IMG")
-     echo "${NOMBRE_ARCH%.*}" >> nom_img.txt
-   done
-
-   if [ -e nom_val.txt ] ;then
-     rm nom_val.txt
-     touch nom_val.txt
-   else
-     touch nom_val.txt
-   fi
-    
-   # Crea un archivo y guarda los nombres validos.
-   egrep  ^[A-Z][a-z]+,?[0-9]* nom_img.txt >> nom_val.txt
-
-   if [ -e nom_a.txt ] ;then
-     rm nom_a.txt
-     touch nom_a.txt
-   else
-     touch nom_a.txt
-   fi
-   
-   # Crea un archivo y guarda los nombres que terminen con "a".
-   egrep  a,?[0-9]*$ nom_img.txt >> nom_a.txt
-   
-   # Comprime los archivos nom_img.txt, nom_val.txt, nom_a.txt y los directorios imagenes y imagenes_reducidas. Todo esto guardado en el archivo resultado_final.tar.gz. El archivo comprimido con gzip.
-   tar zcvf resulado_final.tar.gz "./imagenes" "./nom_img.txt" "./nom_val.txt" "./nom_a.txt" "../imagenes_reducidas"
-   echo "los archivos fueron procesados"
+# Validacion de existencia de directorios y contenido
+if [ ! -d "$DIR_ORIGEN" ] || [ -z "$(ls -A "$DIR_ORIGEN")" ]; then
+    echo "Error: Carpeta de imagenes original no existe o esta vacia."
+    exit 1
 fi
+
+if [ ! -d "$DIR_REDUCIDAS" ]; then
+    echo "Error: Todavia no se han procesado las imagenes reducidas."
+    exit 1
+fi
+
+echo "Generando listas de nombres y reportes..."
+
+# Generar lista total de nombres (sobrescribe si ya existe)
+ls "$DIR_ORIGEN" | sed 's/\.[^.]*$//' > "$REPORT_TOTAL"
+
+# Generar lista de nombres validos (comienzan con Mayuscula)
+grep -E "^[A-Z][a-z]+" "$REPORT_TOTAL" > "$REPORT_VAL"
+
+# Generar lista de nombres que terminan con 'a'
+grep -E "a$" "$REPORT_TOTAL" > "$REPORT_A"
+
+# Empaquetado final
+echo "Creando archivo comprimido final..."
+
+# Agrupamos reportes y directorios en el tar.gz
+# Usamos -zcf para modo silencioso y eficiente
+tar -zcf resultado_final.tar.gz \
+    "$DIR_ORIGEN" \
+    "$DIR_REDUCIDAS" \
+    "$REPORT_TOTAL" \
+    "$REPORT_VAL" \
+    "$REPORT_A"
+
+if [ $? -eq 0 ]; then
+    echo "Proceso finalizado. Archivo 'resultado_final.tar.gz' generado correctamente."
+else
+    echo "Error durante la creacion del paquete final."
+    exit 1
+fi
+
 exit 0
