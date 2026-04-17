@@ -1,4 +1,4 @@
-                                                                    Docker Vision Pipeline
+Docker Vision Pipeline
 
 Desarrollador: Tomas Herenu
 
