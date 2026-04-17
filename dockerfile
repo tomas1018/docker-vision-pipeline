@@ -1,24 +1,33 @@
-FROM ubuntu
+FROM ubuntu:22.04
 
+# Evitar interacciones durante la instalacion
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Instalar 
+# Instalar dependencias
+RUN apt-get update && apt-get install -y imagemagick wget coreutils tar && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y imagemagick wget
-WORKDIR /tp-entorno/scripts/
+# Establecer el directorio de trabajo con el nuevo nombre del proyecto
+WORKDIR /docker-vision-pipeline/scripts/
 
-# Establecer el directorio de trabajo
+# Copiar los scripts uno por uno (asegurando consistencia de nombres)
+COPY scripts/generar.sh /docker-vision-pipeline/scripts/
+COPY scripts/descomprimir.sh /docker-vision-pipeline/scripts/
+COPY scripts/procesar.sh /docker-vision-pipeline/scripts/
+COPY scripts/generar_reporte.sh /docker-vision-pipeline/scripts/
+COPY scripts/menu.sh /docker-vision-pipeline/scripts/
 
-COPY /scripts/generar.sh /tp-entorno/scripts/
-COPY /scripts/descomprimir.sh /tp-entorno/scripts/
-COPY /scripts/procesar.sh /tp-entorno/scripts/
-COPY /scripts/comprimir.sh /tp-entorno/scripts/
-COPY /scripts/menu.sh /tp-entorno/scripts/
+# Dar permisos de ejecucion
+RUN chmod +x /docker-vision-pipeline/scripts/*.sh
 
-# Definir el comando por defecto para ejecutar el menú
-CMD ["bash" , "/tp-entorno/scripts/menu.sh"]
+# Definir el comando por defecto para ejecutar el menu
+CMD ["bash", "/docker-vision-pipeline/scripts/menu.sh"]
 
-#comandos a ejecutar
-
-#docker build -t tp_entorno .
-#docker volume create arch_comprimido
-#docker run -v arch_comprimido:/tp-entorno/scripts/ -it tp_entorno
+# --- Comandos de referencia para ejecucion ---
+# 1. Construir la imagen:
+# docker build -t docker-vision-pipeline .
+#
+# 2. Ejecutar el contenedor (Modo Interactivo):
+# docker run -it --name pipeline_instance docker-vision-pipeline
+#
+# 3. Extraer el resultado final a tu PC:
+# docker cp pipeline_instance:/docker-vision-pipeline/scripts/resultado_final.tar.gz .
