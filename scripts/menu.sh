@@ -1,33 +1,41 @@
 #!/bin/bash
- echo  "Ingrese la opcion que desee"
+
+echo "--- Panel de Control: Pipeline de Imagenes ---"
+
 select opcion in Generar Descomprimir Procesar Comprimir Salir
 do
-   case  $opcion in
-      "Generar")
-         
-         echo "Ingrese el numero de imagenes que desea generar"
-         read NUMERO
-         ./generar.sh $NUMERO
-         ;;
-      "Descomprimir")
-         echo "Ingrese la carpeta que quiere descomprimir (Recomendacion: ./imagenes.tar.gz"
- 	 read arch_tar_gz
-         echo "Ingrese el archivo con la suma de verificacion (Recomendacion: ../verificacion.txt)"
-         read verificacion
-	 ./descomprimir.sh $arch_tar_gz $verificacion
-         ;;
-      "Procesar")
-	 ./procesar.sh
-	 ;;
-      "Comprimir")
-	 ./comprimir.sh
-	 ;;
-      "Salir")
-	 echo "Gracias por su descarga :)"
-	 break
-	 ;;
-      *)
-	 echo "Opcion ingresada incorrecta"
-	 ;;
-   esac
+    case $opcion in
+        "Generar")
+            read -p "Ingrese la cantidad de imagenes a generar: " NUMERO
+            ./generar.sh "$NUMERO"
+            ;;
+            
+        "Descomprimir")
+            read -p "Ruta del archivo comprimido (ej: ./imagenes.tar.gz): " ARCH_TAR
+            read -p "Ruta del archivo de verificacion (ej: ../verificacion.txt): " ARCH_HASH
+            ./descomprimir.sh "$ARCH_TAR" "$ARCH_HASH"
+            ;;
+            
+        "Procesar")
+            ./procesar.sh
+            ;;
+            
+        "Comprimir")
+            # Llamamos al script que genera reportes y empaqueta el resultado final
+            ./generar_reporte.sh
+            ;;
+            
+        "Salir")
+            echo "Saliendo del programa."
+            break
+            ;;
+            
+        *)
+            echo "Opcion no valida. Seleccione un numero del 1 al 5."
+            ;;
+    esac
+    
+    echo -e "\n--- Operacion finalizada. Seleccione otra opcion o Salir ---"
 done
+
+exit 0
