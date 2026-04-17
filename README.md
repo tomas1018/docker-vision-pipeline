@@ -1,66 +1,47 @@
-                                                              Tp-entorno 
+                                                                                      Docker Vision Pipeline
 
-Integrantes: Tomas Hereñu, Jonatan Gallardo.
+Desarrollador: Tomas Herenu
 
-Descripción breve del proyecto.
+Descripción del Proyecto
+
+Este sistema es un pipeline automatizado desarrollado en Bash y contenedorizado con Docker. Permite la descarga masiva de imágenes, validación de integridad mediante sumas MD5, procesamiento de imágenes con ImageMagick y generacion de reportes detallados con empaquetado final. El objetivo principal es ofrecer una solución robusta y reproducible para el manejo de activos visuales mediante scripts de shell.
 
 Requisitos Previos
-
-Antes de ejecutar el contenedor, asegúrate de tener instalado Docker en tu sistema. Debera seguir las instrucciones del siguiente enlace para poder continuar: https://docs.docker.com/engine/install/ubuntu/
+Es necesario tener instalado Docker en el sistema. Puedes seguir las instrucciones oficiales según tu plataforma en el siguiente enlace:
+https://docs.docker.com/engine/install/ubuntu/
 
 Instrucciones de Uso
+Clonar el repositorio:
+git clone https://github.com/tomas1018/docker-vision-pipeline.git
 
-A continuación, se detallan los pasos para ejecutar el contenedor:
+cd docker-vision-pipeline
 
+Construir la imagen del contenedor:
+Este paso prepara el entorno con todas las dependencias necesarias (ImageMagick, wget, etc.):
+docker build -t docker-vision-pipeline .
 
-    Clona el repositorio en tu host:
+Ejecutar el contenedor:
+El contenedor debe iniciarse en modo interactivo para poder interactuar con el menu de opciones:
+docker run -it --name pipeline_instance docker-vision-pipeline
 
+Menú de Opciones:
 
-git clone https://github.com/tomas1018/tp-entorno.git
+Al iniciar el contenedor, se desplegara un menú interactivo con las siguientes funcionalidades:
 
-Recuerda que tendras que tener a mano tu nombre de usuario en github y tu token, el cual reemplaza la contraseña
+1 - Generar: Realiza la descarga de imágenes desde un servicio web aleatorio, asigna nombres únicos, genera el archivo de sumas de verificación verificacion.txt y comprime los archivos iniciales en imagenes.tar.gz.
 
-Ingresa al directorio del repositorio:
+2 - Descomprimir: Verifica la integridad de los datos comparando la suma MD5 actual con la registrada en verificacion.txt. Si el hash coincide, procede a la descompresión.
 
-cd tp-entorno
+3 - Procesar: Filtra las imágenes según criterios de nomenclatura (nombres que inicien con Mayuscula) y realiza un redimensionamiento a 512x512 pixeles utilizando ImageMagick.
 
-Ejecuta el siguiente comando para construir la imagen del contenedor:
+4 - Comprimir (Reportes): Ejecuta la lógica de análisis final para generar listas de nombres totales, nombres validos y nombres terminados en la letra a, empaquetando todo en el archivo final resultado_final.tar.gz.
 
-docker build -t tp_entorno .
+5 - Salir: Finaliza la ejecución del programa y cierra el contenedor.
 
-Crear un Volumen
-
-Crea un volumen para compartir los archivos generados por el contenedor:
-
-
-docker volume create arch_comprimido
-
-Ejecutar el Contenedor
-
-Ahora, puedes ejecutar el contenedor utilizando el siguiente comando:
-
-
-   docker run -v arch_comprimido:/tp-entorno/scripts/ -it tp_entorno
-
-Una vez ejecutado el contenedor se procedera a descargar automaticamente todo lo necesario para el funcionamiento del mismo.
-
-    Menú de Opciones
-
-    Una vez dentro del contenedor, verás un menú con varias opciones. Puedes seleccionar una opción escribiendo el número correspondiente y presionando Enter.
-    
-    1) La primera genera imagenes de un servicio web (el cual genera imagenes de forma aleatoria), luego se le asigna un nombre (tambien de caracter aleatoro) y finalmente se comprimeto en la carpeta "imagenes.tar.gz" y genera un archivo con la suma de verificaciones, "verificacion.txt".
-    
-    2) En este páso se compara la suma de verificaciones co el archivo generado anteriormente "verificacion.txt" y en caso de que la suma de verificaciones sea exitosa procede a descomprimir el archivo. 
-    
-    3) Aquellas imagenes cuyos nombres asignados empiecen con una letra mayuscula y sigan por minusculas (no importa  si tienen numeros)  seran recortados a una imagen de 512*512 con imagemagick (el cual fue descargado automaticamente con las descarga del contenedor).
-    
-    4) Finalmente luego de procesadas las imagenes se procedera a generar un archivo con el nombre de todas las imagenes generadas anteriormente,  otro archivo con una lista de los nombres validos (mencionados anteriormente), tambien un archivo el cual contendra los nombres terminados en "a"y por ultimo se comprimiran los archivos anterioemnte nombrados y todas las imagenes generadas.   
-
-    Finalizar
-
-    Cuando hayas terminado de usar el contenedor, puedes escribir "5" o seleccionar "Salir" para finalizar la ejecución del contenedor, gracias por elegirnos :).
+Extracción de Resultados:
+Una vez finalizado el proceso, podes extraer el paquete de resultados desde el contenedor hacia tu maquina local utilizando el siguiente comando:
+docker cp pipeline_instance:/docker-vision-pipeline/scripts/resultado_final.tar.gz .
 
 Contacto:
- En caso de alguna consulta contactarse a: 
- tomasfernando61@gmail.com 
- jonigallard2@gmail.com
+Para consultas tecnicas o colaboraciones, podes contactarme en:
+tomasfernando61@gmail.com
